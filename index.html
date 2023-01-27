@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>SMTF_1.0</title>
+    <script src="https://cdn.plot.ly/plotly-2.16.1.min.js"></script>
+</head>
+
+<body>
+    <div class="banner" style="display: flex;">
+        <table>
+            <tr>
+                <td><img src="figs/img_sss.png" style="width:50px; height:50px"></td>
+                <td>
+                    <h1 style="padding-left: 20px; margin-bottom: 0; text-align: left; color: black;">SMTF <span
+                            style="font-size: 20px;">1.0</span></h1>
+                    <h5 style="padding-left: 20px; margin-top: 0; text-align: left; color: black;">
+                        Sistema de Monitoramento Térmico
+                        <br>
+                        de Fontes de Contaminação
+                    </h5>
+                </td>
+            </tr>
+        </table>
+        <div style="margin-left: auto;">
+            <img src="figs/logos.svg" style="width: 180px; padding-right: 20px; padding-top: 10px;">
+        </div>
+    </div>
+
+    <br>
+    <div class="container" id="sec-result" style="background-color: rgb(255, 255, 255);">
+        <div id="sec-depletion" style="width: 65%;  min-width: 200px;">
+            <div id="fig-depletion" style="height: 600px;"></div>
+        </div>
+
+        <div>
+            <div class="console" style="height:200px; overflow: auto; margin-left: auto; margin-top: 30px;">
+                <p id="console"> STMF LOG: <br> </p>
+            </div>
+            <h4> Parâmetros de cálculo </h4>
+            <table>
+                <tr>
+                    <td><label for="time-begin">Inicio:</label></td>
+                    <td><input id="time-begin" type="datetime-local" disabled name="time-begin"
+                            value="2020-01-01T00:00" /> </td>
+                </tr>
+                <tr>
+                    <td><label for="time-begin">Fim: </label></td>
+                    <td><input id="time-end" type="datetime-local" disabled name="time-end" value="2020-01-01T00:00" />
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="substance">Substância derramada: </label></td>
+                    <td><select id="substance" name="substance"> </select></td>
+                </tr>
+                <tr>
+                    <td><label for="spec-energy">Energia específica: </label></td>
+                    <td><input id="spec-energy" type="number" value="30" min="20" max="50" step="1"> kJ/g</td>
+                </tr>
+                <tr>
+                    <td><label for="porosity">Porosidade do meio: </label></td>
+                    <td><input id="porosity" type="number" value="0.1" min="0.1" max="1" step="0.1"></td>
+                </tr>
+                <tr>
+                    <td><label for="therm-cap">Cap. térmica vol. (meio saturado): </label></td>
+                    <td><input id="therm-cap" type="number" value="1" min="1" max="5" step="0.1"> MJ/m³ K</td>
+                </tr>
+                <tr>
+                    <td><label for="therm-cond">Cond. térmica (meio saturado): </label></td>
+                    <td><input id="therm-cond" type="number" value="0.3" min="0.1" max="3.0" step="0.1"> W/m K</td>
+                </tr>
+                <tr>
+                    <td><label for="vang-coef">Coeficiente de Van Genuchten: </label></td>
+                    <td><input id="vang-coef" type="number" value="0.1" min="0.1" max="10" step="0.1"> 1/m </td>
+                </tr>
+                <tr>
+                    <td><label for="vang-exp">Expoente de Van Genuchten: </label></td>
+                    <td><input id="vang-exp" type="number" value="1" min="1" max="5" step="0.1"></td>
+                </tr>
+            </table>
+            <div style="text-align: center;">
+                <button id="recalculate" style="font-size: 16px; text-align: center; margin-top: 20px;">Recalcular</button>
+            </div>
+        </div>
+    </div>
+    <br>
+
+    <div class="container" id="sec-control" style="background-color: rgb(255, 255, 255);">
+        <img src="figs/diagram.svg" style="height: 500px; padding-top: 20px;">
+        <div id="sec-profile" style="width: 30%; min-width: 300px;">
+            <div id="fig-profile" style="height: 600px;"></div>
+        </div>
+        <div style="padding-right: 40px;">
+            <h4> Medidas instantâneas </h4>
+            <div style="height:500px; overflow: auto;">
+                <table id="view-meas-value">
+                    <tr>
+                        <td> Data/Hora </td>
+                        <td>
+                            <input id="time-view" type="datetime-local" name="time-view" value="2017-06-01T08:30"
+                                disabled /><br>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label for="top-heat-flow">Fluxo superficial de calor: </label> </td>
+                        <td> <input type="number" id="top-heat-flow" disabled value="0"> W/m² </td>
+                    </tr>
+                    <tr>
+                        <td><label for="btm-heat-flow">Fluxo subterrâneo de calor: </label></td>
+                        <td> <input type="number" id="btm-heat-flow" disabled value="0"> W/m² </td>
+                    </tr>
+                    <tr>
+                        <td><label for="internal-energy">Energia interna: </label></td>
+                        <td> <input type="number" id="internal-energy" disabled value="0"> J/m² </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="break"></div>
+
+        <div> Selecionar um registro: </div>
+        <input type="range" id="idx-meas" min="0" max="1" value="0" step="1" class="slider"
+            style="width: 85%; margin-left:auto;">
+    </div>
+
+    <br>
+
+    <div class="container" id="sec-view-raw" style="background-color: rgb(255, 255, 255);">
+        <h3> Visualização de dados brutos</h3>
+        <div class="break"></div>
+
+        <div id="cont-view-raw" style="width: 80%;  min-width: 300px;">
+            <div id="fig-view-raw" style="height: 500px;"></div>
+        </div>
+
+        <div>
+            <table>
+                <tr>
+                    <td><label for="time-begin">Inicio:</label></td>
+                    <td><input id="time-begin" type="datetime-local" name="time-begin" value="2017-06-01T08:30" /> <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="time-begin">Fim: </label></td>
+                    <td><input id="time-end" type="datetime-local" name="time-end" value="2021-06-01T08:30" /> </label>
+                    </td>
+                </tr>
+            </table>
+            <hr>
+            <div style="height:400px; overflow: auto;">
+                <table id="toggle-view-raw"></table>
+            </div>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="banner">
+        <p style="color: black; padding-top: 20px; padding-bottom: 20px;">
+            PROTÓTIPO 1.0 - INSTALAÇÃO REPLAN <br>
+            Ferramentas de Monitoramento e Quantificação da Depleção de Massa de Hidrocarbonetos de <br>
+            Petróleo em Fontes de Contaminação para o Apoio no Encerramento de Casos de Contaminação <br>
+            -- Contrato 5900.0109869.18.9 --
+        </p>
+        <p style="color: black;">© REMA - Núcleo Ressacada de Pesquisa em Meio Ambiente</p>
+        <br>
+    </div>
+
+    <script type="module" src="logic/main.js"></script>
+</body>
+
+</html>
