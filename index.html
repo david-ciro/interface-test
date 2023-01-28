@@ -26,13 +26,16 @@
             </tr>
         </table>
         <div style="margin-left: auto;">
-            <img src="figs/logos.svg" style="width: 180px; padding-right: 20px; padding-top: 10px;">
+            <!--img src="figs/logos.svg" style="width: 180px; padding-right: 20px; padding-top: 10px;"-->
+            <img src="figs/logo_br.svg" style="height: 40px; padding-right: 20px; padding-top: 10px;">
+            <img src="figs/logo_ufsc.svg" style="height: 60px; padding-right: 20px; padding-top: 10px;">
+            <img src="figs/logo_rema.svg" style="height: 50px; padding-right: 20px; padding-top: 10px;">
         </div>
     </div>
 
     <br>
     <div class="container" id="sec-result" style="background-color: rgb(255, 255, 255);">
-        <div id="sec-depletion" style="width: 65%;  min-width: 200px;">
+        <div id="sec-depletion" style="width: 65%;  min-width: 500px;">
             <div id="fig-depletion" style="height: 600px;"></div>
         </div>
 
@@ -43,13 +46,13 @@
             <h4> Parâmetros de cálculo </h4>
             <table>
                 <tr>
-                    <td><label for="time-begin">Inicio:</label></td>
-                    <td><input id="time-begin" type="datetime-local" disabled name="time-begin"
+                    <td><label for="time-begin1">Inicio:</label></td>
+                    <td><input id="time-begin1" type="datetime-local" disabled name="time-begin1"
                             value="2020-01-01T00:00" /> </td>
                 </tr>
                 <tr>
-                    <td><label for="time-begin">Fim: </label></td>
-                    <td><input id="time-end" type="datetime-local" disabled name="time-end" value="2020-01-01T00:00" />
+                    <td><label for="time-end1">Fim: </label></td>
+                    <td><input id="time-end1" type="datetime-local" disabled name="time-end1" value="2020-01-01T00:00" />
                     </td>
                 </tr>
                 <tr>
@@ -58,7 +61,7 @@
                 </tr>
                 <tr>
                     <td><label for="spec-energy">Energia específica: </label></td>
-                    <td><input id="spec-energy" type="number" value="30" min="20" max="50" step="1"> kJ/g</td>
+                    <td><input id="spec-energy" type="number" disabled value="30" min="20" max="50" step="1"> kJ/g</td>
                 </tr>
                 <tr>
                     <td><label for="porosity">Porosidade do meio: </label></td>
@@ -94,29 +97,41 @@
             <div id="fig-profile" style="height: 600px;"></div>
         </div>
         <div style="padding-right: 40px;">
+            <h4> Balanço energético </h4>
+            <table id="view-energy-values">
+                <tr>
+                    <td> Data/Hora </td>
+                    <td>
+                        <input id="time-view" type="datetime-local" name="time-view" value="2017-06-01T08:30"
+                            disabled /><br>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="top-heat-flow">Fluxo superficial de calor: </label> </td>
+                    <td> <input type="number" id="top-heat-flow" disabled value="0"> W/m² </td>
+                </tr>
+                <tr>
+                    <td><label for="btm-heat-flow">Fluxo subterrâneo de calor: </label></td>
+                    <td> <input type="number" id="btm-heat-flow" disabled value="0"> W/m² </td>
+                </tr>
+                <tr>
+                    <td><label for="internal-energy">Energia interna: </label></td>
+                    <td> <input type="number" id="internal-energy" disabled value="0"> J/m² </td>
+                </tr>
+                <tr>
+                    <td><label for="depleted-energy">Energia liberada (Acum.): </label></td>
+                    <td> <input type="number" id="depleted-energy" disabled value="0"> J/m² </td>
+                </tr>
+                <tr>
+                    <td><label for="equivalent-mass">Massa depletada (Acum.): </label></td>
+                    <td> <input type="number" id="equivalent-mass" disabled value="0"> g/m² </td>
+                </tr>
+            </table>
+            <br>
+
             <h4> Medidas instantâneas </h4>
-            <div style="height:500px; overflow: auto;">
-                <table id="view-meas-value">
-                    <tr>
-                        <td> Data/Hora </td>
-                        <td>
-                            <input id="time-view" type="datetime-local" name="time-view" value="2017-06-01T08:30"
-                                disabled /><br>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><label for="top-heat-flow">Fluxo superficial de calor: </label> </td>
-                        <td> <input type="number" id="top-heat-flow" disabled value="0"> W/m² </td>
-                    </tr>
-                    <tr>
-                        <td><label for="btm-heat-flow">Fluxo subterrâneo de calor: </label></td>
-                        <td> <input type="number" id="btm-heat-flow" disabled value="0"> W/m² </td>
-                    </tr>
-                    <tr>
-                        <td><label for="internal-energy">Energia interna: </label></td>
-                        <td> <input type="number" id="internal-energy" disabled value="0"> J/m² </td>
-                    </tr>
-                </table>
+            <div style="height:300px; overflow: auto;">
+                <table id="view-meas-value"></table>
             </div>
         </div>
 
@@ -133,20 +148,20 @@
         <h3> Visualização de dados brutos</h3>
         <div class="break"></div>
 
-        <div id="cont-view-raw" style="width: 80%;  min-width: 300px;">
+        <div id="cont-view-raw" style="width: 80%;  min-width: 500px;">
             <div id="fig-view-raw" style="height: 500px;"></div>
         </div>
 
         <div>
             <table>
                 <tr>
-                    <td><label for="time-begin">Inicio:</label></td>
-                    <td><input id="time-begin" type="datetime-local" name="time-begin" value="2017-06-01T08:30" /> <br>
+                    <td><label for="time-begin2">Inicio:</label></td>
+                    <td><input id="time-begin2" type="datetime-local" name="time-begin2" value="2017-06-01T08:30" /> <br>
                     </td>
                 </tr>
                 <tr>
-                    <td><label for="time-begin">Fim: </label></td>
-                    <td><input id="time-end" type="datetime-local" name="time-end" value="2021-06-01T08:30" /> </label>
+                    <td><label for="time-end2">Fim: </label></td>
+                    <td><input id="time-end2" type="datetime-local" name="time-end2" value="2021-06-01T08:30" /> </label>
                     </td>
                 </tr>
             </table>

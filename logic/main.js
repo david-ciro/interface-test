@@ -1,6 +1,6 @@
 import { insert_text, set_progress } from "./methods.js";
 import { rawData, colNames, tempVal, tempLoc, fillColumns, fixDataUnits, refreshTempData } from "./fetchData.js";
-import { calcDepletion, subsEnergy, subsNames, soil, specEnergy } from "./nszd.js"
+import { calcDepletion, subsIndex, subsEnergy, subsNames, setSubsIndex, setSubsEnergy, soil } from "./nszd.js"
 
 const sheetId = '1DEXfEHcYPDpwHixNWlKuEInPXm1Wm4s9mrNQVCynzFw';
 const sheetIdTest = '1KZGoeeMbVXvKwRWvSkvb9_3NhYWTse_o0GvytZtiT_U';
@@ -10,6 +10,11 @@ const url = `${base}&tq=${query}`;
 
 // current data being visualized
 var dataIdx = 0;
+var mass = [];
+var heat = [];
+var energy = [];
+var fTop = [];
+var fBtm = [];
 
 insert_text("console", "Aguardando dados da estação...");
 
@@ -25,10 +30,16 @@ fetch(url)
         insert_text("console", "Carregados " + rawData[0].length + " registros");
         insert_text("console", "Efetuando conversão de unidades...");
         fixDataUnits(rawData);
-        const offset = new Date("1990-01-01T00:00:00.000Z").getTime()
-        const date = new Date(rawData[2][0] * 1000 + offset);
-        console.log("date: ", date, ", offset: ", offset);
-        console.log("raw data: ", rawData);
+
+        var i = 0;
+        while (isNaN(rawData[0][i])) { i++; }
+        var dateString = rawData[0][i].toISOString();
+        document.getElementById("time-begin1").value = dateString.substring(0, dateString.length - 8);
+        document.getElementById("time-begin2").value = dateString.substring(0, dateString.length - 8);
+
+        dateString = rawData[0][rawData[0].length - 1].toISOString();
+        document.getElementById("time-end1").value = dateString.substring(0, dateString.length - 8);
+        document.getElementById("time-end2").value = dateString.substring(0, dateString.length - 8);
     })
     .then(res => {
         // create raw plot traces
@@ -133,9 +144,18 @@ fetch(url)
                     document.getElementById(viewId).value = rawData[i][dataIdx];
                 }
             }
+            // Update energy balance
+            document.getElementById("top-heat-flow").value = fTop[dataIdx];
+            document.getElementById("btm-heat-flow").value = fBtm[dataIdx];
+            document.getElementById("internal-energy").value = energy[dataIdx];
+            document.getElementById("depleted-energy").value = heat[dataIdx];
+            document.getElementById("equivalent-mass").value = mass[dataIdx];
+
             // update temperature profile
             refreshTempData(dataIdx);
-            profile_layout.title.text = "Perfil de temperatura<br>" + rawData[0][dataIdx].toLocaleString();
+            var dateString = rawData[0][dataIdx].toISOString()
+            dateString = dateString.substring(0, dateString.length - 8)
+            profile_layout.title.text = "Perfil de temperatura<br>" + dateString;
             profile_layout.title.size = 10;
             Plotly.update('fig-profile', profile_traces, profile_layout);
             // update depletion figure pointer
@@ -148,6 +168,7 @@ fetch(url)
         }
     })
     .then(res => {
+        //document.getElementById("time-begin").value = 
         // loading substances
         insert_text("console", "Carregando substâncias...");
         for (var i = 0; i <= subsNames.length; i++) {
@@ -157,39 +178,39 @@ fetch(url)
             document.getElementById("substance").appendChild(opt);
         }
         // loading soil data to controls
-        document.getElementById("substance").value = 0;
-        document.getElementById("spec-energy").value = subsEnergy[0] / 1000;
+        document.getElementById("substance").value = subsIndex;
+        document.getElementById("spec-energy").value = subsEnergy[subsIndex] / 1000;
         document.getElementById("porosity").value = soil.phi;
         document.getElementById("therm-cap").value = soil.cSat / 1e6;
         document.getElementById("therm-cond").value = soil.kSat;
         document.getElementById("vang-coef").value = soil.vg_alpha;
         document.getElementById("vang-exp").value = soil.vg_n;
         // adding functionality to substance
-        document.getElementById("substance").onchange = function(){
-            if (this.value == 0){
+        document.getElementById("substance").onchange = function () {
+            if (this.value == 0) {
                 document.getElementById("spec-energy").disabled = false;
             } else {
                 document.getElementById("spec-energy").disabled = true;
-                document.getElementById("spec-energy").value = subsEnergy[this.value]/1000; 
+                document.getElementById("spec-energy").value = subsEnergy[this.value] / 1000;
+            }
+            setSubsIndex(this.value);
+        }
+        // adding functionality to energy density
+        document.getElementById("spec-energy").onchange = function () {
+            if (document.getElementById("substance").value == 0) {
+                setSubsEnergy(1000 * document.getElementById("spec-energy").value);
             }
         }
 
-        // adding functionality to recalculate
-        var apxMass = Array(rawData[0].length).fill(0);
-
-        document.getElementById("recalculate").onclick = function (){
-            soil.phi = document.getElementById("porosity").value;
-            soil.cSat = 1e6 * document.getElementById("therm-cap").value;
-            soil.kSat = document.getElementById("therm-cond").value;
-            soil.vg_alpha = document.getElementById("vang-coef").value;
-            soil.vg_n = document.getElementById("vang-exp").value;
-            specEnergy = 1000 * document.getElementById("spec-energy").value;
-
-            calcDepletion(rawData[2], rawData[13], apxMass);
-        }
+        /*
+        var mass = Array(rawData[0].length).fill(0);
+        var heat = Array(rawData[0].length).fill(0);
+        var energy = Array(rawData[0].length).fill(0);
+        var fTop = Array(rawData[0].length).fill(0);
+        var fBtm = Array(rawData[0].length).fill(0); */
 
         var pointerX = [rawData[0][dataIdx], rawData[0][dataIdx]];
-        var pointerY = [0, apxMass[dataIdx]];
+        var pointerY = [0, mass[dataIdx]];
         var nszd_traces = [];
         // cursor
         nszd_traces.push({
@@ -201,7 +222,7 @@ fetch(url)
         nszd_traces.push({
             name: "Massa degradada (g/m²)",
             x: rawData[0],
-            y: apxMass,
+            y: mass,
             line: { shape: 'spline' },
             type: 'scatter',
             visible: true,
@@ -223,6 +244,19 @@ fetch(url)
         Plotly.newPlot('fig-depletion', nszd_traces, nszd_layout, nszd_config);
 
         insert_text("console", "Calculando a depleção de massa do contaminante...");
-        calcDepletion(rawData[2], rawData[13], apxMass);
+        calcDepletion(rawData[2], rawData[13], mass, heat, energy, fBtm, fTop);
         Plotly.update('fig-depletion', nszd_traces, nszd_layout);
+
+        // adding functionality to recalculate
+        document.getElementById("recalculate").onclick = function () {
+            insert_text("console", "Recalculando a depleção de massa do contaminante...");
+            soil.phi = document.getElementById("porosity").value;
+            soil.cSat = 1e6 * document.getElementById("therm-cap").value;
+            soil.kSat = document.getElementById("therm-cond").value;
+            soil.vg_alpha = document.getElementById("vang-coef").value;
+            soil.vg_n = document.getElementById("vang-exp").value;
+
+            calcDepletion(rawData[2], rawData[13], mass, heat, energy, fBtm, fTop);
+            Plotly.update('fig-depletion', nszd_traces, nszd_layout);
+        }
     })

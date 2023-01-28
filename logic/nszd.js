@@ -1,8 +1,16 @@
 import { tempLoc, tempVal, refreshTempData } from "./fetchData.js";
 
-export var specEnergy = 48000; // J/g decomposition energy Sweeney2014
+export var subsIndex = 3;
 export var subsNames = ["Outro", "Benzeno", "Octano", "Gasolina", "Diesel", "Biodiesel"];
-export var subsEnergy = [48000, 47400, 52000, 46000, 45000, 38000]; // J/g
+export var subsEnergy = [48000, 47400, 52000, 46000, 45000, 38000]; // J/g specific energy
+
+export function setSubsEnergy(value){
+    subsEnergy[0] = value;
+}
+
+export function setSubsIndex(index){
+    subsIndex = index;
+}
 
 // a cubic interpolant
 class Interpolant {
@@ -168,7 +176,8 @@ function calcThermParams(listZ, listT, waterLevel) {
     //console.log("thermErnergy:", thermEnergy);
 }
 
-export function calcDepletion(time, waterLevel, mass) {
+export function calcDepletion(time, waterLevel, listMass, listHeat, listEnergy, listFlowBtm, listFlowTop) {
+    console.log("calculating depletion");
     var flow0 = 0;
     var U0 = 0;
     var t0 = 0;
@@ -176,6 +185,9 @@ export function calcDepletion(time, waterLevel, mass) {
     for (var i = 0; i < time.length; i++) {
         refreshTempData(i);
         calcThermParams(tempLoc, tempVal, waterLevel[i]);
+        listFlowBtm[i] = flowBtm;
+        listFlowTop[i] = flowTop;
+        listEnergy[i] = thermEnergy;
         var flow1 = flowBtm + flowTop;
         var U1 = thermEnergy;
         var t1 = time[i];
@@ -191,6 +203,8 @@ export function calcDepletion(time, waterLevel, mass) {
                 t0 = t1;
             }
         }
-        mass[i] = relHeat / specEnergy;
+        listHeat[i] = relHeat;
+        listMass[i] = relHeat / subsEnergy[subsIndex];
+        //console.log("progress", 100*i/(time.length-1), "%");
     }
 }
